@@ -1,0 +1,144 @@
+import tkinter as tk
+from tkinter import filedialog, Text, Scrollbar, Label, Button
+from textblob import TextBlob
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import string
+from nltk.corpus import stopwords
+
+# Global variables
+filename = ""
+tweets_list = []
+clean_list = []
+pos, neu, neg = 0, 0, 0
+
+# Initialize GUI
+main = tk.Tk()
+main.title("Analysis of Women Safety in Indian Cities Using Machine Learning on Tweets")
+main.geometry("1300x1200")
+main.config(bg='brown')
+
+# Tweet cleaning function
+def tweetCleaning(doc):
+    tokens = doc.split()
+    table = str.maketrans('', '', string.punctuation)
+    tokens = [w.translate(table) for w in tokens]
+    tokens = [word for word in tokens if word.isalpha()]
+    stop_words = set(stopwords.words('english'))
+    tokens = [w for w in tokens if w not in stop_words]
+    tokens = [word for word in tokens if len(word) > 1]
+    tokens = ' '.join(tokens)
+    return tokens
+
+# Upload dataset
+def upload():
+    global filename
+    filename = filedialog.askopenfilename(initialdir="dataset")
+    pathlabel.config(text=filename)
+    text.delete('1.0', tk.END)
+    text.insert(tk.END, filename + " loaded\n")
+
+# Read tweets from CSV
+def read():
+    global tweets_list
+    text.delete('1.0', tk.END)
+    tweets_list.clear()
+    train = pd.read_csv(filename, encoding='ISO-8859-1')
+    for i in range(len(train)):
+        tweet = train.loc[i, 'Text']
+        tweets_list.append(tweet)
+        text.insert(tk.END, tweet + "\n")
+    text.insert(tk.END, f"\n\nTotal tweets found in dataset: {len(tweets_list)}\n\n\n")
+
+# Clean tweets
+def clean():
+    global clean_list
+    text.delete('1.0', tk.END)
+    clean_list.clear()
+    for tweet in tweets_list:
+        tweet = tweet.strip().lower()
+        cleaned = tweetCleaning(tweet)
+        clean_list.append(cleaned)
+        text.insert(tk.END, cleaned + "\n")
+    text.insert(tk.END, f"\n\nTotal cleaned tweets: {len(clean_list)}\n\n\n")
+
+# Machine learning - sentiment analysis
+def machineLearning():
+    global pos, neu, neg
+    text.delete('1.0', tk.END)
+    pos = neu = neg = 0
+    for tweet in clean_list:
+        blob = TextBlob(tweet)
+        if blob.polarity <= 0.2:
+            neg += 1
+            text.insert(tk.END, tweet + "\n")
+            text.insert(tk.END, "Predicted Sentiment: NEGATIVE\n")
+            text.insert(tk.END, f"Polarity Score: {blob.polarity}\n")
+            text.insert(tk.END, "---------------------------\n")
+        elif 0.2 < blob.polarity <= 0.5:
+            neu += 1
+            text.insert(tk.END, tweet + "\n")
+            text.insert(tk.END, "Predicted Sentiment: NEUTRAL\n")
+            text.insert(tk.END, f"Polarity Score: {blob.polarity}\n")
+            text.insert(tk.END, "---------------------------\n")
+        else:
+            pos += 1
+            text.insert(tk.END, tweet + "\n")
+            text.insert(tk.END, "Predicted Sentiment: POSITIVE\n")
+            text.insert(tk.END, f"Polarity Score: {blob.polarity}\n")
+            text.insert(tk.END, "---------------------------\n")
+
+# Display sentiment graph
+def graph():
+    text.delete('1.0', tk.END)
+    text.insert(tk.END, "Safety Factor\n\n")
+    text.insert(tk.END, f'Positive: {pos}\n')
+    text.insert(tk.END, f'Negative: {neg}\n')
+    text.insert(tk.END, f'Neutral : {neu}\n\n')
+    total = len(clean_list)
+    text.insert(tk.END, f'Length of tweets : {total}\n')
+    text.insert(tk.END, f'Positive : {pos} / {total} = {pos/total:.2%}\n')
+    text.insert(tk.END, f'Negative : {neg} / {total} = {neg/total:.2%}\n')
+    text.insert(tk.END, f'Neutral : {neu} / {total} = {neu/total:.2%}\n')
+
+    labels = ['Positive', 'Negative', 'Neutral']
+    sizes = [pos, neg, neu]
+    plt.pie(sizes, labels=labels, autopct='%1.1f%%')
+    plt.title('Women Safety - Sentiment Graph')
+    plt.axis('equal')
+    plt.show()
+
+# GUI Components
+font = ('times', 16, 'bold')
+title = Label(main, text='Analysis of Women Safety in Indian Cities Using Machine Learning on Tweets', bg='brown', fg='white', font=font)
+title.place(x=0, y=5, width=1300, height=50)
+
+font1 = ('times', 14, 'bold')
+
+uploadButton = Button(main, text="Upload Tweets Dataset", command=upload, font=font1)
+uploadButton.place(x=50, y=100)
+
+pathlabel = Label(main, bg='brown', fg='white', font=font1)
+pathlabel.place(x=300, y=100)
+
+readButton = Button(main, text="Read Tweets", command=read, font=font1)
+readButton.place(x=50, y=150)
+
+cleanButton = Button(main, text="Clean Tweets", command=clean, font=font1)
+cleanButton.place(x=200, y=150)
+
+mlButton = Button(main, text="Run Machine Learning Algorithm", command=machineLearning, font=font1)
+mlButton.place(x=350, y=150)
+
+graphButton = Button(main, text="Show Sentiment Graph", command=graph, font=font1)
+graphButton.place(x=650, y=150)
+
+text = Text(main, height=25, width=150, font=('times', 12, 'bold'))
+scroll = Scrollbar(main)
+scroll.config(command=text.yview)
+text.configure(yscrollcommand=scroll.set)
+text.place(x=10, y=220)
+scroll.place(x=1180, y=220, height=400)
+
+main.mainloop()
