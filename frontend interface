@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Women Safety Sentiment Analysis</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Analysis of Women Safety in Indian Cities Using Machine Learning on Tweets</h1>
+
+        <div class="actions">
+            <label class="file-label">
+                Upload Dataset:
+                <input type="file" id="upload" accept=".csv">
+            </label>
+
+            <button onclick="readTweets()">Read Tweets</button>
+            <button onclick="cleanTweets()">Clean Tweets</button>
+            <button onclick="runML()">Run ML Algorithm</button>
+            <button onclick="showGraph()">Show Graph</button>
+        </div>
+
+        <textarea id="output" placeholder="Output will appear here..." readonly></textarea>
+    </div>
+
+    <script>
+        function readTweets() {
+            document.getElementById('output').value = "Reading tweets from dataset...\n(Backend function to be implemented)";
+        }
+
+        function cleanTweets() {
+            document.getElementById('output').value = "Cleaning tweets...\n(Backend function to be implemented)";
+        }
+
+        function runML() {
+            document.getElementById('output').value = "Running Machine Learning Sentiment Analysis...\n(Backend function to be implemented)";
+        }
+
+        function showGraph() {
+            document.getElementById('output').value = "Displaying Graph...\n(Backend function to be implemented)";
+        }
+    </script>
+</body>
+</html>
